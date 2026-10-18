@@ -123,6 +123,24 @@ main{width:100%;max-width:620px;margin:0 auto;padding:12px max(12px,env(safe-are
 .btn svg{width:15px;height:15px}.btn:active{transform:scale(.985)}
 .acts.one{grid-template-columns:1fr}
 
+/* notes (GitHub Issues labelled mc:<id>) */
+.notes{border-top:1px dashed var(--line);margin-top:-2px}
+.notes summary{font-size:10px;color:var(--mut)}.notes[open] summary{color:var(--water)}
+.notes summary .count{font-weight:400;letter-spacing:.1em}
+.notes ul{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
+.note{position:relative;padding:7px 9px 7px 10px;border-left:2px solid var(--electric);background:rgba(255,230,0,.035);font:400 11.5px/1.45 var(--body);color:var(--txt);min-width:0}
+.note.closed{border-left-color:var(--dim);background:rgba(255,255,255,.02);color:var(--mut)}
+.note a{display:flex;align-items:baseline;gap:7px;min-height:24px;color:inherit;text-decoration:none;overflow-wrap:anywhere}
+.note a b{font:500 12.5px/1.3 var(--body)}.note.closed a b{text-decoration:line-through;text-decoration-color:var(--dim)}
+.nst{flex:none;font:700 8.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--electric)}.note.closed .nst{color:var(--grass)}
+.note p{margin:3px 0 0;color:var(--mut);overflow-wrap:anywhere}
+.note time{display:block;margin-top:3px;font:400 9.5px/1 var(--mono);letter-spacing:.08em;color:var(--dim)}
+.reply{margin-top:6px;padding:5px 8px;background:rgba(25,227,255,.05);box-shadow:inset 1px 0 0 var(--water);font:400 11px/1.45 var(--body);color:var(--txt);overflow-wrap:anywhere}
+.reply span{display:block;font:700 8.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--water)}
+.nempty{margin:0 0 8px;font:400 10.5px/1.4 var(--mono);letter-spacing:.06em;color:var(--dim)}
+.note-add{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;color:var(--water);text-decoration:none;background:rgba(25,227,255,.04);box-shadow:inset 0 0 0 1px rgba(25,227,255,.22);font:700 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
+.note-add svg{width:14px;height:14px}.note-add:active{transform:scale(.985)}
+
 /* repos */
 .panel{position:relative;margin:16px 0 12px;padding:4px 14px 10px;background:rgba(15,14,27,.65);box-shadow:inset 0 0 0 1px var(--line);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
 summary{min-height:44px;display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;font:700 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--water)}summary::-webkit-details-marker{display:none}

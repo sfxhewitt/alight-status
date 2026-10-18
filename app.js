@@ -24,7 +24,33 @@ const I = {
   unarch: '<svg viewBox="0 0 24 24"><path d="M3 5h18v4H3zM5 9v10h14V9M12 18v-6M9 14l3-3 3 3"/></svg>',
   live: '<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg>',
   repo: '<svg viewBox="0 0 24 24"><path d="M8 7 3 12l5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>',
+  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
 };
+// ---- notes: GitHub Issues labelled mc:<id> (gen.py puts them in p.comments) ----
+const NOTES_NEW = 'https://github.com/sfxhewitt/alight-status/issues/new';
+const noteUrl = p => `${NOTES_NEW}?labels=mc:${encodeURIComponent(p.id)}&title=${encodeURIComponent(p.name)}:%20&body=`;
+const openNotes = new Set(); // keep <details> open across the 15s re-render
+function notes(p) {
+  const cs = Array.isArray(p.comments) ? p.comments : [];
+  const nOpen = cs.filter(c => c.state === 'open').length;
+  const count = cs.length ? `<span class="count">${nOpen ? nOpen + ' open' : ''}${nOpen && nOpen < cs.length ? ' · ' : ''}${cs.length - nOpen ? (cs.length - nOpen) + ' done' : ''}</span>` : '';
+  const items = cs.map(c => `<li class="note ${c.state === 'open' ? 'open' : 'closed'}">
+      <a href="${esc(c.html_url)}" target="_blank" rel="noopener"><span class="nst">${c.state === 'open' ? 'Open' : 'Done'}</span><b>${esc(c.title)}</b></a>
+      ${c.body ? `<p>${esc(c.body)}</p>` : ''}
+      <time datetime="${esc(c.created_at)}" title="${esc(fmtAbs(c.created_at))}">${esc(ago(c.created_at))}</time>
+      ${c.reply ? `<div class="reply"><span>Reply</span>${esc(c.reply.body)}</div>` : ''}
+    </li>`).join('');
+  const empty = p.comments_error && !cs.length ? 'Notes unavailable right now' : 'No notes yet';
+  return `<details class="notes" data-notes="${esc(p.id)}"${openNotes.has(p.id) ? ' open' : ''}>
+    <summary>Notes ${count}</summary>
+    ${items ? `<ul>${items}</ul>` : `<p class="nempty">${empty}</p>`}
+    <a class="note-add" href="${esc(noteUrl(p))}" target="_blank" rel="noopener">${I.plus}Add note</a>
+  </details>`;
+}
+document.addEventListener('toggle', e => {
+  const d = e.target; if (!d.matches || !d.matches('details[data-notes]')) return;
+  d.open ? openNotes.add(d.dataset.notes) : openNotes.delete(d.dataset.notes);
+}, true);
 
 function card(p) {
   if (p.error) return `<article class="card down"><div class="ch"><h3>${esc(p.name)}</h3></div><p class="desc">Status check failed this cycle.</p></article>`;
@@ -73,6 +99,7 @@ function card(p) {
     ${steps}
     <dl class="kv">${kv.join('')}</dl>
     <div class="acts ${acts.length === 1 ? 'one' : ''}">${acts.join('')}</div>
+    ${notes(p)}
   </article>`;
 }
 

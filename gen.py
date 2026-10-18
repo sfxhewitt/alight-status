@@ -252,6 +252,80 @@ def build_project(p):
     return out
 
 
+# ---- per-project notes: GitHub Issues in the dashboard repo labelled mc:<id> ----
+NOTES_REPO = CFG.get("notes_repo", "sfxhewitt/alight-status")
+NOTES_CACHE = os.path.join(HERE, ".cache", "notes.json")
+NOTES_TTL = 120          # seconds between GitHub calls
+NOTES_CLOSED_DAYS = 14   # closed notes stay visible this long
+NOTES_MAX = 8            # per project
+NOTES_Q = """query($o:String!,$r:String!){viewer{login}repository(owner:$o,name:$r){issues(first:100,orderBy:{field:UPDATED_AT,direction:DESC}){nodes{
+number title body state createdAt closedAt url author{login} labels(first:10){nodes{name}}
+comments(last:20){nodes{author{login} body createdAt url}}}}}}"""
+
+
+def _snip(s, n=220):
+    s = re.sub(r"\s+", " ", s or "").strip()
+    return s if len(s) <= n else s[: n - 1].rstrip() + "…"
+
+
+def fetch_notes_raw():
+    """One GraphQL call (gh's own auth; the token never touches our output). Cached for NOTES_TTL."""
+    try:
+        c = json.load(open(NOTES_CACHE))
+        if NOW - c.get("at", 0) < NOTES_TTL:
+            return c["data"]
+    except Exception:
+        c = None
+    o, r = NOTES_REPO.split("/", 1)
+    out = sh(["gh", "api", "graphql", "-f", f"query={NOTES_Q}", "-F", f"o={o}", "-F", f"r={r}"], timeout=15)
+    try:
+        d = json.loads(out)["data"]
+        issues = d["repository"]["issues"]["nodes"]
+        data = {"viewer": d["viewer"]["login"], "issues": issues}
+        os.makedirs(os.path.dirname(NOTES_CACHE), exist_ok=True)
+        tmp = NOTES_CACHE + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump({"at": NOW, "data": data}, f)
+        os.replace(tmp, NOTES_CACHE)
+        return data
+    except Exception:
+        return c["data"] if c else None  # stale cache beats nothing; None = unavailable
+
+
+def notes_by_project(raw, now=None):
+    """raw -> {project_id: [note, ...]} with open notes first (newest first), then recently closed."""
+    now = NOW if now is None else now
+    if not raw:
+        return {}
+    me = (raw.get("viewer") or "").lower()
+    res = {}
+    for it in raw.get("issues") or []:
+        labels = [l["name"] for l in (it.get("labels") or {}).get("nodes", [])]
+        ids = [l[3:] for l in labels if l.startswith("mc:")]
+        if not ids:
+            continue
+        closed = it.get("state") != "OPEN"
+        if closed and (now - (from_iso(it.get("closedAt")) or 0)) > NOTES_CLOSED_DAYS * 86400:
+            continue
+        n = {"number": it["number"], "title": _snip(it.get("title"), 140), "body": _snip(it.get("body")),
+             "state": "closed" if closed else "open", "created_at": iso(from_iso(it.get("createdAt"))),
+             "html_url": it.get("url")}
+        if closed:
+            n["closed_at"] = iso(from_iso(it.get("closedAt")))
+        mine = [c for c in (it.get("comments") or {}).get("nodes", [])
+                if me and ((c.get("author") or {}).get("login") or "").lower() == me]
+        if mine:
+            c = mine[-1]
+            n["reply"] = {"body": _snip(c.get("body"), 280), "created_at": iso(from_iso(c.get("createdAt"))),
+                          "html_url": c.get("url")}
+        for pid in ids:
+            res.setdefault(pid, []).append(n)
+    for pid, ns in res.items():
+        ns.sort(key=lambda n: (n["state"] != "open", -(from_iso(n["created_at"]) or 0)))
+        res[pid] = ns[:NOTES_MAX]
+    return res
+
+
 def repos():
     j = sh(["gh", "repo", "list", CFG["owner"], "--limit", "200", "--json", "name,visibility,pushedAt"], timeout=30)
     try:
@@ -270,6 +344,15 @@ def main():
             projects.append(build_project(p))
         except Exception:
             projects.append({"id": p.get("id"), "name": p.get("name"), "error": True})
+    try:
+        raw = fetch_notes_raw()
+        notes = notes_by_project(raw)
+    except Exception:
+        raw, notes = None, {}
+    for pr in projects:
+        pr["comments"] = notes.get(pr.get("id"), [])
+        if raw is None:
+            pr["comments_error"] = True
     rl = repos() or prev or []
     data = {"schema": 2, "updated": iso(NOW), "generated_ms": round((time.time() - NOW) * 1000),
             "projects": projects, "repos": rl}

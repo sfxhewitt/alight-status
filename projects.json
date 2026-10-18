@@ -1,0 +1,265 @@
+{
+ "owner": "sfxhewitt",
+ "active_minutes": 15,
+ "ignore_dirs": [
+  ".git",
+  "node_modules",
+  "__pycache__",
+  ".venv",
+  ".pytest_cache",
+  ".cache",
+  "data"
+ ],
+ "projects": [
+  {
+   "id": "kinetic",
+   "name": "KINETIC // motion",
+   "repo": "sfxhewitt/motion-web",
+   "path": "/workspace/alight-web",
+   "live": "https://sfxhewitt.github.io/motion-web/",
+   "description": "Mobile-first browser motion-graphics editor: layers, keyframes, easing, WebGL FX, blend modes, export, PWA.",
+   "phase": "Timeline touch fix",
+   "steps": [
+    {
+     "name": "Analyse official APK (apktool + JADX + findings)",
+     "done": [
+      {
+       "type": "exists",
+       "path": "/workspace/alight-analysis/FINDINGS.md"
+      }
+     ]
+    },
+    {
+     "name": "Build web editor",
+     "done": [
+      {
+       "type": "exists",
+       "path": "js/main.js"
+      },
+      {
+       "type": "exists",
+       "path": "index.html"
+      }
+     ]
+    },
+    {
+     "name": "Test desktop + iPhone sizes",
+     "done": [
+      {
+       "type": "exists",
+       "path": "test-output/results.json"
+      }
+     ]
+    },
+    {
+     "name": "Publish to GitHub Pages",
+     "done": [
+      {
+       "type": "site_up"
+      }
+     ]
+    },
+    {
+     "name": "iOS standalone full-height fix",
+     "done": [
+      {
+       "type": "commit_grep",
+       "pattern": "standalone"
+      }
+     ]
+    },
+    {
+     "name": "Timeline touch issue reported",
+     "done": [
+      {
+       "type": "exists",
+       "path": "timeline-issue.*"
+      }
+     ]
+    },
+    {
+     "name": "Timeline touch fix",
+     "done": [
+      {
+       "type": "commit_grep",
+       "pattern": "(timeline.*(touch|drag|scroll|scrub))|((touch|drag|scroll|scrub).*timeline)"
+      }
+     ],
+     "run": [
+      {
+       "type": "source_dirty",
+       "globs": [
+        "js/*.js",
+        "css/*.css",
+        "index.html"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Re-test + deploy",
+     "done": [
+      {
+       "type": "commit_grep",
+       "pattern": "(timeline.*(touch|drag|scroll|scrub))|((touch|drag|scroll|scrub).*timeline)"
+      },
+      {
+       "type": "pushed"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "reelpick",
+   "name": "Reel Pick",
+   "repo": "sfxhewitt/reel-pick",
+   "path": "/workspace/movie-chooser",
+   "live": "https://sfxhewitt.github.io/reel-pick/",
+   "description": "Movie finder: TMDB catalogue, Jev affect scoring, recommender with cooldown rules, new theme.",
+   "phase": "Upgrade: TMDB + Jev + recommender",
+   "steps": [
+    {
+     "name": "New theme",
+     "done": [
+      {
+       "type": "exists",
+       "path": "fonts/*.woff2"
+      },
+      {
+       "type": "exists",
+       "path": "icon.svg"
+      }
+     ]
+    },
+    {
+     "name": "TMDB integration",
+     "done": [
+      {
+       "type": "exists",
+       "path": "tmdb.js"
+      }
+     ],
+     "detail": {
+      "type": "sqlite_count",
+      "path": "scripts/.cache/catalog.sqlite",
+      "table": "tmdb",
+      "label": "films fetched"
+     }
+    },
+    {
+     "name": "Jev catalogue build",
+     "done": [
+      {
+       "type": "catalog_scored",
+       "path": "data/catalog.json",
+       "min_ratio": 0.95
+      }
+     ],
+     "run": [
+      {
+       "type": "process",
+       "pattern": "build_catalog"
+      }
+     ],
+     "warn": [
+      {
+       "type": "json_true",
+       "path": "data/catalog.json",
+       "key": "meta.jev_auth_failed",
+       "message": "Jev auth failed: heuristic scores used"
+      }
+     ],
+     "progress": {
+      "type": "catalog",
+      "path": "data/catalog.json",
+      "db": "scripts/.cache/catalog.sqlite"
+     }
+    },
+    {
+     "name": "Recommender",
+     "done": [
+      {
+       "type": "exists",
+       "path": "reco.js"
+      }
+     ]
+    },
+    {
+     "name": "Cooldown rules",
+     "done": [
+      {
+       "type": "exists",
+       "path": "rules.js"
+      }
+     ]
+    },
+    {
+     "name": "Tests",
+     "done": [
+      {
+       "type": "exists",
+       "path": "tests/*"
+      },
+      {
+       "type": "newer",
+       "path": "screenshots/*.png",
+       "than": "reco.js"
+      }
+     ],
+     "run": [
+      {
+       "type": "process",
+       "pattern": "movie-chooser.*(test|playwright)"
+      }
+     ]
+    },
+    {
+     "name": "Deploy",
+     "done": [
+      {
+       "type": "tracked",
+       "path": "reco.js"
+      },
+      {
+       "type": "clean"
+      },
+      {
+       "type": "pushed"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tcg",
+   "name": "TCG Stock Finder",
+   "repo": "sfxhewitt/tcg-stock-finder",
+   "path": "/workspace/tcg-stock-finder",
+   "private": true,
+   "live": null,
+   "description": "Trading-card stock and price scanner. Self-hosted on a private server.",
+   "phase": "Deployed (self-hosted)"
+  },
+  {
+   "id": "pepper",
+   "name": "Pepper joke",
+   "repo": "sfxhewitt/pepper-joke",
+   "path": "/workspace/pepper-joke",
+   "live": "https://sfxhewitt.github.io/pepper-joke/",
+   "description": "A one-page joke site.",
+   "phase": "Live"
+  },
+  {
+   "id": "mission",
+   "name": "Mission Control",
+   "repo": "sfxhewitt/alight-status",
+   "path": "/workspace/alight-status",
+   "live": "https://sfxhewitt.github.io/alight-status/",
+   "description": "This dashboard. Regenerated every 60s by gen.py from projects.json.",
+   "phase": "Live",
+   "skip_active": true,
+   "commit_ignore": "^status$"
+  }
+ ]
+}

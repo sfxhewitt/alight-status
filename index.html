@@ -1,4 +1,44 @@
-<!doctype html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>Alight build status</title>
-<style>body{background:#0b0b12;color:#ddd;font:14px system-ui;padding:16px}h1{color:#7cf;font-size:18px}.s{padding:8px;margin:6px 0;border-radius:8px;background:#161622}.done{border-left:4px solid #4f8}.run{border-left:4px solid #fc4}.todo{border-left:4px solid #555}small{color:#888}</style></head>
-<body><h1>Alight Motion clone build</h1><div id=o>Loading…</div><small id=t></small>
-<script>async function r(){try{const d=await (await fetch('status.json?'+Date.now())).json();o.innerHTML=d.steps.map(s=>`<div class="s ${s.state}">${s.state=='done'?'✅':s.state=='run'?'⏳':'⬜'} ${s.name}</div>`).join('');t.textContent='Updated '+d.updated}catch(e){o.textContent='No status yet'}}r();setInterval(r,15000)</script></body></html>
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mission Control</title>
+<meta name="description" content="Live status of sfxhewitt's projects">
+<meta name="theme-color" content="#05050a">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mission Ctrl">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/jetbrains-mono-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+ <div class="brand"><img src="icon.svg" alt="" width="30" height="30">
+  <div><h1>Mission Control</h1><p class="sub" id="sub">Connecting…</p></div></div>
+ <button class="iconbtn" id="refresh" aria-label="Refresh now"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></button>
+</header>
+<main>
+ <section class="summary" id="summary" aria-label="Summary">
+  <div class="stat"><b id="sUp">–</b><span>Sites up</span></div>
+  <div class="stat"><b id="sAct">–</b><span>Building</span></div>
+  <div class="stat"><b id="sSteps">–</b><span>Steps done</span></div>
+ </section>
+ <div class="meter" aria-hidden="true"><i id="sBar"></i></div>
+ <div id="stale" class="banner" hidden></div>
+ <h2 class="h2">Projects</h2>
+ <div class="grid" id="projects"><div class="empty">Loading telemetry…</div></div>
+ <details class="panel" id="reposPanel">
+  <summary>All repos <span class="count" id="repoCount"></span></summary>
+  <div id="repos"></div>
+ </details>
+ <p class="foot">Auto-refresh 15s · data regenerated every 60s · times Europe/London</p>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

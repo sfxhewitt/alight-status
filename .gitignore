@@ -1,0 +1,4 @@
+screenshots/
+tests/out/
+.status.json.tmp
+__pycache__/

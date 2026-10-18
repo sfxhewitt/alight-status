@@ -1,8 +1,8 @@
-{"updated":"01:27:48 BST","steps":[
+{"updated":"01:28:49 BST","steps":[
 {"name":"Download official APK","state":"done"},
 {"name":"Decode resources (apktool)","state":"done"},
 {"name":"Decompile code (JADX)","state":"done"},
 {"name":"Write findings","state":"done"},
-{"name":"Build web app (43 files)","state":"run"},
+{"name":"Build web app (27 files)","state":"run"},
 {"name":"Test on desktop + iPhone sizes","state":"todo"},
 {"name":"Publish to GitHub Pages","state":"todo"}]}

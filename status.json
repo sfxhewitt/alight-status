@@ -1,0 +1,8 @@
+{"updated":"01:07:14 BST","steps":[
+{"name":"Download official APK","state":"done"},
+{"name":"Decode resources (apktool)","state":"done"},
+{"name":"Decompile code (JADX)","state":"run"},
+{"name":"Write findings","state":"todo"},
+{"name":"Build web app (0 files)","state":"todo"},
+{"name":"Test on desktop + iPhone sizes","state":"todo"},
+{"name":"Publish to GitHub Pages","state":"todo"}]}

@@ -106,7 +106,7 @@ function render(d) {
     return `<div class="repo${hot ? ' hot' : ''}"><b>${esc(r.name)}</b><span class="badge ${r.visibility === 'public' ? 'pub' : 'priv'}">${esc(r.visibility)}</span><time datetime="${esc(r.pushed)}" title="${esc(fmtAbs(r.pushed))}">${esc(ago(r.pushed))}</time></div>`;
   }).join('');
   const age = (Date.now() - new Date(d.updated)) / 1000;
-  const stale = age > 180;
+  const stale = age > 900;
   $('#sub').textContent = `${ps.length} projects · data ${ago(d.updated)}`;
   $('#sub').classList.toggle('bad', stale);
   const s = $('#stale'); s.hidden = !stale;
@@ -174,7 +174,7 @@ let last = null;
 async function load() {
   const btn = $('#refresh'); btn.classList.add('busy');
   try {
-    const r = await fetch('status.json?t=' + Date.now(), { cache: 'no-store' });
+    const r = await fetch('https://raw.githubusercontent.com/sfxhewitt/alight-status/data/status.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r : fetch('status.json?t=' + Date.now(), { cache: 'no-store' }));
     if (!r.ok) throw new Error(r.status);
     const j = await r.json();
     if (!Array.isArray(j.projects)) throw new Error('old schema');

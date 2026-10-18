@@ -31,14 +31,20 @@
  </section>
  <div class="meter" aria-hidden="true"><i id="sBar"></i></div>
  <div id="stale" class="banner" hidden></div>
- <h2 class="h2">Projects</h2>
- <div class="grid" id="projects"><div class="empty">Loading telemetry…</div></div>
+ <div class="railhead"><h2 class="h2">Projects</h2><span class="counter" id="counter" aria-live="polite"></span></div>
+ <div class="rail" id="projects" tabindex="0" aria-label="Projects, swipe sideways"><div class="empty">Loading telemetry…</div></div>
+ <div class="dots" id="dots" role="tablist" aria-label="Project position"></div>
  <details class="panel" id="reposPanel">
   <summary>All repos <span class="count" id="repoCount"></span></summary>
   <div id="repos"></div>
  </details>
+ <details class="panel" id="archPanel" hidden>
+  <summary>Archived <span class="count" id="archCount"></span></summary>
+  <div id="archived"></div>
+ </details>
  <p class="foot">Auto-refresh 15s · data regenerated every 60s · times Europe/London</p>
 </main>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="undo" type="button">Undo</button></div>
 <script src="app.js"></script>
 </body>
 </html>

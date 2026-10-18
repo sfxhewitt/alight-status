@@ -52,7 +52,35 @@ main{width:100%;max-width:620px;margin:0 auto;padding:12px max(12px,env(safe-are
 .h2::before{content:"";width:6px;height:6px;background:var(--water);box-shadow:0 0 8px var(--water);transform:rotate(45deg)}
 
 /* project cards */
-.grid{display:grid;gap:10px}
+/* carousel */
+.railhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.counter{font:700 10.5px/1 var(--mono);letter-spacing:.14em;color:var(--mut)}
+.rail{--gap:10px;--peek:12%;display:flex;gap:var(--gap);align-items:flex-start;overflow-x:auto;overflow-y:hidden;
+ scroll-snap-type:x mandatory;overscroll-behavior-x:contain;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+ margin:0 calc(-1 * max(12px,env(safe-area-inset-right))) 0 calc(-1 * max(12px,env(safe-area-inset-left)));
+ padding:2px max(12px,env(safe-area-inset-right)) 4px max(12px,env(safe-area-inset-left));
+ scroll-padding-inline:max(12px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-right))}
+.rail::-webkit-scrollbar{display:none}.rail:focus-visible{outline:1px dashed var(--water);outline-offset:2px}
+.rail>.card{flex:0 0 calc(100% - var(--peek) - var(--gap));scroll-snap-align:start;scroll-snap-stop:always}
+.rail>.empty{flex:1}
+.dots{display:flex;justify-content:center;flex-wrap:wrap;gap:2px;margin:2px 0 0}
+.dots button{width:26px;height:44px;border:0;background:none;cursor:pointer;display:grid;place-items:center;padding:0}
+.dots button::before{content:"";width:7px;height:7px;background:var(--dim);transform:rotate(45deg);transition:background .2s,box-shadow .2s,transform .2s}
+.dots button[aria-selected=true]::before{background:var(--water);box-shadow:0 0 8px var(--water);transform:rotate(45deg) scale(1.25)}
+/* archive: subtle corner button */
+.card>.archbtn{position:absolute;top:2px;right:16px;z-index:2;width:44px;height:44px;display:grid;place-items:center;border:0;background:none;cursor:pointer;color:var(--dim);opacity:.45;transition:opacity .2s,color .2s}
+.archbtn svg{width:16px;height:16px}.archbtn:hover,.archbtn:focus-visible{opacity:1;color:var(--mut)}.archbtn:active{opacity:1;color:var(--electric);transform:scale(.92)}
+.card .ch h3{padding-right:40px}
+.arow{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;border-top:1px dashed var(--line)}
+.arow b{font:500 13px/1.3 var(--disp);letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+.unarch{display:flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border:0;cursor:pointer;color:var(--water);background:rgba(25,227,255,.06);box-shadow:inset 0 0 0 1px rgba(25,227,255,.3);font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.unarch svg{width:15px;height:15px}
+.toast{position:fixed;left:50%;bottom:calc(var(--bot) + 16px);z-index:40;display:flex;align-items:center;gap:12px;max-width:calc(100% - 28px);padding:4px 4px 4px 14px;
+ transform:translate(-50%,16px);opacity:0;pointer-events:none;transition:.25s;color:var(--grass);background:rgba(5,5,10,.95);
+ box-shadow:inset 0 0 0 1px rgba(182,255,26,.45),0 0 24px rgba(182,255,26,.2);font:400 11px/1.4 var(--mono);letter-spacing:.06em}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}.toast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.toast span::before{content:"> "}
+.toast button{min-height:44px;padding:0 14px;border:0;cursor:pointer;color:#000;background:var(--grass);font:700 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
+.toast.noundo button{display:none}.toast.noundo{padding:12px 14px}
 .card{--c:var(--water);position:relative;display:grid;gap:10px;padding:13px 13px 13px 15px;min-width:0;
  background:linear-gradient(135deg,rgba(255,255,255,.035),transparent 40%),linear-gradient(var(--plate),var(--deep));
  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
@@ -108,6 +136,7 @@ summary::after{content:"+";margin-left:auto;font-size:16px;transition:transform 
 .empty{padding:26px 16px;text-align:center;color:var(--mut);font:400 11px/1.7 var(--mono);letter-spacing:.08em;text-transform:uppercase;border:1px dashed rgba(25,227,255,.25);background:rgba(25,227,255,.03)}
 .foot{margin:14px 0 0;text-align:center;font:400 9.5px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 
-@media (min-width:900px){body{font-size:14px}main{max-width:1180px}.grid{grid-template-columns:repeat(auto-fill,minmax(360px,1fr));align-items:start}
+@media (min-width:600px) and (max-width:899px){.rail>.card{flex-basis:calc((100% - var(--gap)) / 2.1)}}
+@media (min-width:900px){body{font-size:14px}main{max-width:1180px}.rail>.card{flex-basis:calc((100% - 2 * var(--gap)) / 3.15)}.rail{scrollbar-width:thin;scrollbar-color:rgba(25,227,255,.35) transparent}
  .summary{grid-template-columns:repeat(3,1fr);max-width:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}

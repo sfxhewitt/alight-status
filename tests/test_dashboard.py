@@ -35,6 +35,65 @@ with sync_playwright() as p:
                 r = pg.request.get(BASE + u); ok(f"{t} GET {u}", r.status == 200, str(r.status))
             pg.click("#reposPanel summary"); pg.wait_for_timeout(300)
             ok(t + " repo list", pg.locator(".repo").count() >= 20, str(pg.locator(".repo").count()))
+            # ---- carousel ----
+            pg.evaluate("document.querySelector('#reposPanel').open=false; scrollTo(0,0)"); pg.wait_for_timeout(200)
+            rail = "#projects"
+            ov = pg.evaluate(f"getComputedStyle(document.querySelector('{rail}')).overflowX")
+            snap = pg.evaluate(f"getComputedStyle(document.querySelector('{rail}')).scrollSnapType")
+            ok(t + " carousel horizontal + snap", ov == "auto" and "x" in snap and "mandatory" in snap, f"{ov} / {snap}")
+            ok(t + " touch-action + overscroll", pg.evaluate(f"(s=>s.touchAction.includes('pan-x')&&s.overscrollBehaviorX=='contain')(getComputedStyle(document.querySelector('{rail}')))"))
+            geo = pg.evaluate(f"""(()=>{{const r=document.querySelector('{rail}'),c=[...r.querySelectorAll('.card')];const rr=r.getBoundingClientRect();
+                return {{rw:rr.width,cw:c[0].getBoundingClientRect().width,visible:c.filter(x=>{{const b=x.getBoundingClientRect();return b.left<rr.right-1&&b.right>rr.left+1}}).length}}}})()""")
+            if mob:
+                ok(t + " one card ~fills width, next peeks", 0.75 < geo["cw"] / geo["rw"] < 0.95 and geo["visible"] == 2, str(geo))
+            else:
+                ok(t + " several cards per row", geo["visible"] >= 3, str(geo))
+            ok(t + " counter shows 1 / 5", pg.inner_text("#counter").strip() == "1 / 5", pg.inner_text("#counter"))
+            ok(t + " 5 position dots", pg.locator("#dots button").count() == 5)
+            box = pg.locator(rail).bounding_box()
+            if mob and eng == "chromium":
+                # real touch swipe (CDP touch events), then check it settles on a snap point
+                cdp = ctx.new_cdp_session(pg); y = box["y"] + 200
+                def drag(x0, y0, dx, dy, n=15):
+                    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x0, "y": y0}]})
+                    for i in range(1, n + 1):
+                        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x0 + dx * i / n, "y": y0 + dy * i / n}]}); pg.wait_for_timeout(16)
+                    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+                drag(380, y, -270, 0)
+            else:
+                pg.mouse.move(box["x"] + box["width"] / 2, box["y"] + 200); pg.mouse.wheel(int(box["width"] * 0.3), 0)
+            pg.wait_for_timeout(1200)
+            sn = pg.evaluate(f"""(()=>{{const r=document.querySelector('{rail}'),pl=parseFloat(getComputedStyle(r).scrollPaddingLeft)||0,max=r.scrollWidth-r.clientWidth;
+                const pts=[...r.querySelectorAll('.card')].map(c=>Math.min(max,c.offsetLeft-r.offsetLeft-pl));return {{x:r.scrollLeft,pts}}}})()""")
+            near = min(abs(sn["x"] - p_) for p_ in sn["pts"])
+            ok(t + " swipe scrolls + snaps to a card", sn["x"] > 10 and near <= 2, f"x={sn['x']:.0f} nearest snap off by {near:.1f}")
+            ok(t + " counter follows scroll", pg.inner_text("#counter").strip() != "1 / 5", pg.inner_text("#counter"))
+            vy = pg.evaluate("scrollY")
+            ok(t + " page did not scroll vertically during swipe", vy < 5, str(vy))
+            if mob and eng == "chromium":
+                sl = pg.evaluate(f"document.querySelector('{rail}').scrollLeft")
+                drag(220, 700, 0, -300); pg.wait_for_timeout(1000)
+                ok(t + " vertical swipe over a card scrolls the page, not the carousel", pg.evaluate("scrollY") > 50 and pg.evaluate(f"document.querySelector('{rail}').scrollLeft") == sl, f"scrollY={pg.evaluate('scrollY')}")
+                pg.evaluate("scrollTo(0,0)")
+            pg.evaluate(f"document.querySelector('{rail}').scrollLeft=0"); pg.wait_for_timeout(300)
+            # ---- archive ----
+            pg.locator("#p-pepper").scroll_into_view_if_needed(); pg.wait_for_timeout(400)
+            pg.locator("#p-pepper .archbtn").tap() if mob else pg.locator("#p-pepper .archbtn").click()
+            pg.wait_for_timeout(200)
+            ok(t + " archived card leaves carousel", pg.locator("#projects #p-pepper").count() == 0 and pg.locator(".rail .card").count() == 4)
+            ok(t + " undo toast shown", pg.locator("#toast.show #undo").is_visible())
+            ok(t + " Archived (1) section", pg.is_visible("#archPanel summary") and "(1)" in pg.inner_text("#archCount"))
+            pg.click("#undo"); pg.wait_for_timeout(200)
+            ok(t + " undo restores", pg.locator("#projects #p-pepper").count() == 1 and pg.is_hidden("#archPanel"))
+            pg.locator("#p-pepper").scroll_into_view_if_needed(); pg.wait_for_timeout(400)
+            pg.locator("#p-pepper .archbtn").click(); pg.wait_for_timeout(5600)
+            ok(t + " toast auto-hides", not pg.locator("#toast.show").count())
+            pg.reload(wait_until="networkidle"); pg.wait_for_selector(".card")
+            ok(t + " archive persists across reload", pg.locator("#projects #p-pepper").count() == 0 and "(1)" in pg.inner_text("#archCount"), pg.evaluate("localStorage.getItem('mc-archived')"))
+            pg.click("#archPanel summary"); pg.click("[data-unarchive=pepper]"); pg.wait_for_timeout(200)
+            ok(t + " unarchive works", pg.locator("#projects #p-pepper").count() == 1 and pg.is_hidden("#archPanel"))
+            pg.reload(wait_until="networkidle"); pg.wait_for_selector(".card")
+            ok(t + " unarchive persists", pg.locator(".rail .card").count() == 5, pg.evaluate("localStorage.getItem('mc-archived')"))
             # auto refresh: count status.json requests over ~16s (only once to save time)
             if eng == "chromium" and mob:
                 n = []

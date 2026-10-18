@@ -186,6 +186,8 @@ def build_project(p):
     out["repo"] = p["repo"]
     out["repo_url"] = f"https://github.com/{p['repo']}"
     out["private"] = private
+    if p.get("archived"):
+        out["archived"] = True  # permanent archive from projects.json
     out["site"] = site_check(p.get("live"))
     ctx = {"site": out["site"]}
 

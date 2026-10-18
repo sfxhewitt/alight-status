@@ -1,4 +1,4 @@
-{"updated":"01:37:01 BST","steps":[
+{"updated":"01:38:03 BST","steps":[
 {"name":"Download official APK","state":"done"},
 {"name":"Decode resources (apktool)","state":"done"},
 {"name":"Decompile code (JADX)","state":"done"},

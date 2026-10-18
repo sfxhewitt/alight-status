@@ -174,10 +174,15 @@ let last = null;
 async function load() {
   const btn = $('#refresh'); btn.classList.add('busy');
   try {
-    const r = await fetch('https://raw.githubusercontent.com/sfxhewitt/alight-status/data/status.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r : fetch('status.json?t=' + Date.now(), { cache: 'no-store' }));
-    if (!r.ok) throw new Error(r.status);
-    const j = await r.json();
-    if (!Array.isArray(j.projects)) throw new Error('old schema');
+    // Fetch both raw URL forms (either CDN path can get stuck on an old copy) and keep the newest.
+    const get = u => fetch(u + '?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => j && Array.isArray(j.projects) ? j : null).catch(() => null);
+    const RAW = 'https://raw.githubusercontent.com/sfxhewitt/alight-status/';
+    let cands = (await Promise.all([get(RAW + 'refs/heads/data/status.json'), get(RAW + 'data/status.json')])).filter(Boolean);
+    if (!cands.length) cands = [await get('status.json')].filter(Boolean);
+    if (!cands.length) throw new Error('no data');
+    const ts = j => Date.parse(j.updated) || 0;
+    let j = cands.reduce((a, b) => ts(b) > ts(a) ? b : a);
+    if (last && ts(last) > ts(j)) j = last;
     last = j;
     safeRender(last);
   } catch (e) {

@@ -128,7 +128,7 @@
       },
       {
        "type": "exists",
-       "path": "icon.svg"
+       "path": "icon-192.png"
       }
      ]
     },

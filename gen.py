@@ -94,6 +94,19 @@ class Repo:
             self._status = [(l[:2], l[3:]) for l in out.splitlines() if l.strip()]
         return self._status
 
+    def ignored(self, paths):  # subset of paths git ignores (generated output)
+        if not self.git or not paths:
+            return set()
+        try:
+            r = subprocess.run(["git", "check-ignore", "--stdin"], cwd=self.root, input="\n".join(paths),
+                               capture_output=True, text=True, timeout=20)
+            return set(r.stdout.splitlines())
+        except Exception:
+            return set()
+
+    def head(self):
+        return self.g("rev-parse", "HEAD")
+
     def ahead(self):
         n = self.g("rev-list", "--count", "@{u}..HEAD")
         if n is None:
@@ -119,7 +132,33 @@ class Repo:
                     continue
                 if m >= cutoff:
                     out.append((m, os.path.relpath(fp, self.root)))
-        return sorted(out, reverse=True)
+        ig = self.ignored([f for _, f in out])
+        return sorted([x for x in out if x[1] not in ig], reverse=True)
+
+
+_pages = {}
+def pages_state(slug):
+    """Latest GitHub Pages build/deployment for a repo -> {"state", "sha"} (legacy builds or Actions deployments)."""
+    if slug in _pages:
+        return _pages[slug]
+    res = None
+    j = sh(["gh", "api", f"repos/{slug}/pages/builds/latest"], timeout=15)
+    try:
+        b = json.loads(j)
+        res = {"state": b.get("status"), "sha": b.get("commit")}
+    except Exception:
+        pass
+    if not res or not res["sha"]:  # Actions-based Pages: use the github-pages environment deployments
+        j = sh(["gh", "api", f"repos/{slug}/deployments?environment=github-pages&per_page=1"], timeout=15)
+        try:
+            dep = json.loads(j)[0]
+            st = json.loads(sh(["gh", "api", dep["statuses_url"] + "?per_page=1"], timeout=15) or "[]")
+            s0 = st[0]["state"] if st else "queued"
+            res = {"state": "built" if s0 == "success" else s0, "sha": dep["sha"]}
+        except Exception:
+            res = None
+    _pages[slug] = res
+    return res
 
 
 def check(c, repo, ctx):
@@ -133,8 +172,14 @@ def check(c, repo, ctx):
         return bool(ctx.get("site") and ctx["site"]["ok"])
     if t == "pushed":
         return repo.ahead() == 0
-    if t == "clean":
-        return repo.git and not repo.status()
+    if t == "clean":  # tracked changes only; untracked files never block (use untracked:true to include)
+        return repo.git and not [x for x in repo.status() if c.get("untracked") or x[0] != "??"]
+    if t == "deployed":  # GitHub Pages serves HEAD
+        d = pages_state(ctx["repo"])
+        return bool(d and d["state"] == "built" and d["sha"] == repo.head())
+    if t == "deploying":
+        d = pages_state(ctx["repo"])
+        return bool(d and d["state"] in ("building", "queued", "in_progress") and d["sha"] == repo.head())
     if t == "tracked":
         return bool(repo.g("ls-files", "--error-unmatch", c["path"]))
     if t == "process":
@@ -189,7 +234,7 @@ def build_project(p):
     if p.get("archived"):
         out["archived"] = True  # permanent archive from projects.json
     out["site"] = site_check(p.get("live"))
-    ctx = {"site": out["site"]}
+    ctx = {"site": out["site"], "repo": p["repo"]}
 
     # commit info
     if repo.git:
@@ -213,6 +258,7 @@ def build_project(p):
     if not p.get("skip_active"):
         st = repo.status()
         recent = repo.recent_files(CFG.get("active_minutes", 15))
+        st = [x for x in st if x[0] != "??" or x[1] not in repo.ignored([x[1]])]
         active = bool(recent) or any(c != "??" for c, _ in st)
         a = {"on": active, "changed": len(st), "recent": len(recent)}
         if recent:

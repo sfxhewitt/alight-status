@@ -209,9 +209,9 @@ async function load() {
     if (!cands.length) throw new Error('no data');
     const ts = j => Date.parse(j.updated) || 0;
     let j = cands.reduce((a, b) => ts(b) > ts(a) ? b : a);
-    // Both raw branch paths can stay stuck on an old copy for 15+ min. When the newest is over 4 min old,
-    // read the file straight from the GitHub API (fresh), at most every 2 min to stay inside its rate limit.
-    if (Date.now() - ts(j) > 240000 && Date.now() - lastApi > 120000) {
+    // Both raw branch paths can stay stuck on an old copy for 15+ min. When the newest is over 2.5 min old,
+    // read the file straight from the GitHub API (fresh), at most every 90 s to stay inside its rate limit.
+    if (Date.now() - ts(j) > 150000 && Date.now() - lastApi > 90000) {
       lastApi = Date.now();
       const a = await fetch('https://api.github.com/repos/sfxhewitt/alight-status/contents/status.json?ref=data&t=' + Date.now(), { cache: 'no-store', headers: { Accept: 'application/vnd.github.raw+json' } })
         .then(r => r.ok ? r.json() : null).then(x => x && Array.isArray(x.projects) ? x : null).catch(() => null);

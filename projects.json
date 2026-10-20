@@ -226,6 +226,14 @@
       },
       {
        "type": "pushed"
+      },
+      {
+       "type": "deployed"
+      }
+     ],
+     "run": [
+      {
+       "type": "deploying"
       }
      ]
     }

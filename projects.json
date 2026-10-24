@@ -259,6 +259,141 @@
    "phase": "Live"
   },
   {
+   "id": "holovault",
+   "name": "HOLO//VAULT",
+   "repo": "sfxhewitt/holo-vault",
+   "path": "/workspace/holovault",
+   "live": "https://sfxhewitt.github.io/holo-vault/",
+   "description": "Pokémon TCG vault PWA: set browser, card search, pack opening, collection vault, offline.",
+   "phase": "Live",
+   "steps": [
+    {
+     "name": "Build app",
+     "done": [
+      {
+       "type": "exists",
+       "path": "index.html"
+      },
+      {
+       "type": "exists",
+       "path": "app.js"
+      }
+     ]
+    },
+    {
+     "name": "PWA: manifest, icons, service worker",
+     "done": [
+      {
+       "type": "exists",
+       "path": "manifest.webmanifest"
+      },
+      {
+       "type": "exists",
+       "path": "sw.js"
+      },
+      {
+       "type": "exists",
+       "path": "icon-512.png"
+      }
+     ]
+    },
+    {
+     "name": "Deploy to GitHub Pages",
+     "done": [
+      {
+       "type": "site_up"
+      },
+      {
+       "type": "clean"
+      },
+      {
+       "type": "pushed"
+      },
+      {
+       "type": "deployed"
+      }
+     ],
+     "run": [
+      {
+       "type": "deploying"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "anfield",
+   "name": "Anfield — Matchday",
+   "repo": "sfxhewitt/anfield",
+   "path": "/workspace/anfield",
+   "live": "https://sfxhewitt.github.io/anfield/",
+   "description": "Liverpool FC companion PWA: matchday, league table, squad, fixtures.",
+   "phase": "Live",
+   "steps": [
+    {
+     "name": "Build app",
+     "done": [
+      {
+       "type": "exists",
+       "path": "index.html"
+      }
+     ]
+    },
+    {
+     "name": "Match data feed",
+     "done": [
+      {
+       "type": "exists",
+       "path": "fetch.sh"
+      },
+      {
+       "type": "exists",
+       "path": "data/*"
+      }
+     ]
+    },
+    {
+     "name": "PWA: manifest, icons, splash, service worker",
+     "done": [
+      {
+       "type": "exists",
+       "path": "manifest.webmanifest"
+      },
+      {
+       "type": "exists",
+       "path": "sw.js"
+      },
+      {
+       "type": "exists",
+       "path": "splash-*.png"
+      }
+     ]
+    },
+    {
+     "name": "Deploy to GitHub Pages",
+     "done": [
+      {
+       "type": "site_up"
+      },
+      {
+       "type": "clean"
+      },
+      {
+       "type": "pushed"
+      },
+      {
+       "type": "deployed"
+      }
+     ],
+     "run": [
+      {
+       "type": "deploying"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "id": "mission",
    "name": "Mission Control",
    "repo": "sfxhewitt/alight-status",
